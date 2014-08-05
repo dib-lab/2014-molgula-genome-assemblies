@@ -1,0 +1,27 @@
+#!/bin/bash -login
+
+#PBS -l walltime=72:00:00,nodes=1:ppn=8,mem=200gb
+#PBS -N oculata_assemble_61
+#PBS -A ged-intel11
+#PBS -M elijahlowe@gmail.com
+#PBS -m abe
+
+module load velvet
+module load screed
+module load khmer
+
+WRKSP='/mnt/scratch/loweelij/genome_assembly/mocu/'
+cd ${WRKSP}
+ln -fs /mnt/home/loweelij/oculata/*trim.gz .
+for i in *R1*trim.gz; do interleave-reads.py $i ${i/R1/R2} > ${i/R1/interleave};done
+for i in *interleave*; do mv $i ${i/.trim.gz/};done
+for i in *interleave*fastq; do normalize-by-median.py -p -k 20 -C 20 -N 4 -x 4e9 -s $i.kh $i;done
+for i in *interleave*keep; do filter-abund.py -V ${i/keep/.kh} $i;done
+for i in *abundfilt; do extract-paired-reads.py $i;done
+for i in *pe; do normalize-by-median.py -p -k 20 -C 5 -N 4 -x 4e9 --savehash $i.kh $i;done
+for i in *se; do normalize-by-median.py -k 20 -C 5 -l ${i/se/pe}.kh $i;done
+cat *se.keep > single.fq
+velveth ${WRKSP}output 21,62,10 -fastq -shortPaired C_MOculata_764_CTTGTA_L008_interleave_001.fastq.keep.abundfilt.pe.keep -shortPaired2 C_MOculata_653_CTTGTA_L007_interleave_001.fastq.keep.abundfilt.pe.keep -shortPaired3 C_MOculata_423_ACAGTG_L006_interleave_001.fastq.keep.abundfilt.pe.keep -short single.fq
+for((i=21;i<=61;i=i+10));do velvetg ${WRKSP}output_"$i" -cov_cutoff auto -exp_cov auto -ins_length 760 -ins_length2 650 -ins_length3 420 -min_contig_lgth 200;done
+
+qstat -f ${PBS_JOBID}
