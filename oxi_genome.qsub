@@ -13,14 +13,14 @@ module load screed
 WRKSP='/mnt/scratch/loweelij/genome_assembly/moxi/c10/'
 mkdir ${WRKSP}
 cd ${WRKSP}
-ln -fs /mnt/home/loweelij/occidentalis/*trim.gz .
-for i in *R1*trim.gz; do interleave-reads.py $i ${i/R1/R2} > ${i/R1/interleave};done
-for i in *interleave*; do mv $i ${i/.gz.trim.gz/};done
+ln -fs /mnt/home/loweelij/occidentalis/*fastq.gz .
+for i in *R1*fastq.gz; do interleave-reads.py $i ${i/R1/R2} > ${i/R1/interleave};done
+for i in *interleave*; do mv $i ${i/.gz/};done
 for i in *interleave*fastq; do normalize-by-median.py -p -k 20 -C 10 -N 4 -x 4e9 -s $i.kh $i;done
 for i in *interleave*keep; do filter-abund.py -V ${i/keep/.kh} $i;done
 for i in *abundfilt; do extract-paired-reads.py $i;done
 cat *abundfilt.se > single.fq
-velveth ${WRKSP}output 21,72,10 -fastq -shortPaired B_MOccidentalis_837_CAGATC_L008_interleave_001.fastq.keep.abundfilt.pe -shortPaired2 B_MOccidentalis_689_CAGATC_L007_interleave_001.fastq.keep.abundfilt.pe -shortPaired3 B_MOccidentalis_334_TGACCA_L006_interleave_001.fastq.keep.abundfilt.pe -short single.fq
+velveth ${WRKSP}output 21,72,10 -fastq -shortPaired B_MOccidentalis_837_CAGATC_L008_interleave_001.trim.fastq.keep.abundfilt.pe -shortPaired2 B_MOccidentalis_689_CAGATC_L007_interleave_001.trim.fastq.keep.abundfilt.pe -shortPaired3 B_MOccidentalis_334_TGACCA_L006_interleave_001.trim.fastq.keep.abundfilt.pe -short single.fq
 for((i=21;i<=71;i=i+10));do velvetg ${WRKSP}output_"$i" -cov_cutoff auto -exp_cov auto -ins_length 840 -ins_length2 690 -ins_length3 330 -min_contig_lgth 200;done
 
 qstat -f ${PBS_JOBID}
