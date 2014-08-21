@@ -1,0 +1,17 @@
+#!/bin/bash -login
+
+#PBS -l walltime=8:00:00,nodes=1:ppn=6,mem=24gb
+#PBS -N cegma_paper
+#PBS -A ged-intel11
+#PBS -M elijahlowe@gmail.com
+#PBS -m abe
+
+module load CEGMA
+
+GENOME='/mnt/home/loweelij/genomes/Mocu_genome_v1.2.fa'
+mkdir /mnt/scratch/loweelij/cegma/paper_mocu/
+cd /mnt/scratch/loweelij/cegma/paper_mocu/
+cegma -g $GENOME -T 4 -o /mnt/scratch/loweelij/cegma/paper_mocu/cegma_paper_mocu
+
+qstat -f ${PBS_JOBID}
+
